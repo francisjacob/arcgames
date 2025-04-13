@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tower of Hanoi</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #121212;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+      margin: 0;
+    }
+    h1 {
+      color: #00d1b2;
+      margin-bottom: 1rem;
+    }
+    .instructions {
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+      text-align: center;
+      max-width: 600px;
+    }
+    .game {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin: 1rem 0;
+    }
+    .tower {
+      width: 100px;
+      height: 300px;
+      border: 2px solid #00d1b2;
+      background: #1e1e1e;
+      box-shadow: 0 0 10px #00d1b2;
+      position: relative;
+      display: flex;
+      flex-direction: column-reverse;
+      align-items: center;
+      padding: 10px;
+    }
+    .disk {
+      height: 20px;
+      border-radius: 4px;
+      margin: 2px 0;
+      text-align: center;
+      line-height: 20px;
+      color: #121212;
+      font-weight: bold;
+    }
+    .selected {
+      outline: 2px solid #00d1b2;
+      outline-offset: -2px;
+      box-shadow: 0 0 8px #00d1b2;
+    }
+    .controls {
+      margin-top: 1rem;
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+    }
+    .timer {
+      font-size: 1.2rem;
+    }
+    button {
+      background-color: #00d1b2;
+      color: #121212;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #00b89c;
+    }
+    #message {
+      margin-top: 1rem;
+      color: #ff3860;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Tower of Hanoi</h1>
+  <div class="instructions">
+    Move all the disks from the first tower to the third tower following these rules:<br>
+    1. Only one disk can be moved at a time.<br>
+    2. You can only move the top disk of any tower.<br>
+    3. No disk may be placed on top of a smaller disk.<br>
+    Complete it within 60 seconds!
+  </div>
+  <div class="game">
+    <div class="tower" id="tower-0" onclick="handleTowerClick(0)"></div>
+    <div class="tower" id="tower-1" onclick="handleTowerClick(1)"></div>
+    <div class="tower" id="tower-2" onclick="handleTowerClick(2)"></div>
+  </div>
+  <div class="controls">
+    <div class="timer">Time left: <span id="timer">60</span>s</div>
+    <button onclick="restartGame()">Restart</button>
+  </div>
+  <div id="message"></div>
+
+  <script>
+    const NUM_DISKS = 5;
+    let towers, selectedTower = null, timeLeft = 60, timerInterval;
+    const timerEl = document.getElementById('timer');
+    const messageEl = document.getElementById('message');
+
+    function createDisk(size, isTop, towerIndex) {
+      const disk = document.createElement('div');
+      disk.className = 'disk';
+      disk.style.width = (size * 20) + 'px';
+      disk.style.backgroundColor = `hsl(${size * 40}, 70%, 50%)`;
+      disk.textContent = size;
+      disk.dataset.size = size;
+      if (selectedTower === towerIndex && isTop) {
+        disk.classList.add('selected');
+      }
+      return disk;
+    }
+
+    function renderTowers() {
+      towers.forEach((tower, i) => {
+        const towerEl = document.getElementById(`tower-${i}`);
+        towerEl.innerHTML = '';
+        tower.forEach((size, idx) => {
+          const isTop = idx === tower.length - 1;
+          towerEl.appendChild(createDisk(size, isTop, i));
+        });
+      });
+    }
+
+    function handleTowerClick(index) {
+      if (timeLeft <= 0) return;
+      if (selectedTower === null) {
+        if (towers[index].length === 0) return;
+        selectedTower = index;
+      } else {
+        if (selectedTower === index) {
+          selectedTower = null;
+          renderTowers();
+          return;
+        }
+        const from = towers[selectedTower];
+        const to = towers[index];
+        const disk = from[from.length - 1];
+        if (to.length === 0 || disk < to[to.length - 1]) {
+          to.push(from.pop());
+          renderTowers();
+          checkWin();
+        }
+        selectedTower = null;
+      }
+      renderTowers();
+    }
+
+    function checkWin() {
+      if (towers[2].length === NUM_DISKS) {
+        clearInterval(timerInterval);
+        messageEl.textContent = "You Win!";
+      }
+    }
+
+    function restartGame() {
+      towers = [[...Array(NUM_DISKS).keys()].map(i => NUM_DISKS - i), [], []];
+      selectedTower = null;
+      timeLeft = 60;
+      messageEl.textContent = '';
+      renderTowers();
+      clearInterval(timerInterval);
+      timerEl.textContent = timeLeft;
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        timerEl.textContent = timeLeft;
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          messageEl.textContent = "Time's up! Try again.";
+        }
+      }, 1000);
+    }
+
+    restartGame();
+  </script>
+</body>
+</html>

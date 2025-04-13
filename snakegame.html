@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Snake Game</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: #121212;
+      color: #fff;
+      height: 100vh;
+      margin: 0;
+      padding: 2rem 1rem;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: #00d1b2;
+    }
+    #game-board {
+      position: relative;
+      border: 2px solid #00d1b2;
+      background: #1e1e1e;
+      box-shadow: 0 0 15px #00d1b2;
+    }
+    .snake-segment {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+    }
+    .food {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background-color: #ff3860;
+    }
+    #message {
+      color: #ff3860;
+      margin-top: 0.5rem;
+      font-weight: bold;
+    }
+    .controls {
+      margin-top: 1rem;
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+    }
+    .score, .timer {
+      font-size: 1.2rem;
+    }
+    button {
+      background-color: #00d1b2;
+      color: #121212;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #00b89c;
+    }
+  </style>
+</head>
+<body>
+  <h1>Snake Game</h1>
+  <div id="game-board" style="width: 400px; height: 600px;"></div>
+  <div class="controls">
+    <div class="score">Score: <span id="score">0</span></div>
+    <div class="timer">Time left: <span id="timer">60</span>s</div>
+    <button onclick="restartGame()">Restart</button>
+  </div>
+  <div id="message"></div>
+
+  <script>
+    const CELL_SIZE = 20;
+    const BOARD_WIDTH = 20;
+    const BOARD_HEIGHT = 30;
+    const TICK_RATE = 150;
+    const LOGO = "arcesiumlogo.jpg";
+    const GAME_DURATION = 60; // seconds
+
+    const board = document.getElementById("game-board");
+    const message = document.getElementById("message");
+    const scoreEl = document.getElementById("score");
+    const timerEl = document.getElementById("timer");
+
+    let snake, direction, food, gameInterval, isGameOver, score;
+    let timer, timeLeft;
+
+    function getRandomCoord() {
+      return [
+        Math.floor(Math.random() * BOARD_WIDTH),
+        Math.floor(Math.random() * BOARD_HEIGHT)
+      ];
+    }
+
+    function draw() {
+      board.innerHTML = "";
+
+      snake.forEach(([x, y]) => {
+        const img = document.createElement("img");
+        img.src = LOGO;
+        img.className = "snake-segment";
+        img.style.left = x * CELL_SIZE + "px";
+        img.style.top = y * CELL_SIZE + "px";
+        board.appendChild(img);
+      });
+
+      const foodEl = document.createElement("div");
+      foodEl.className = "food";
+      foodEl.style.left = food[0] * CELL_SIZE + "px";
+      foodEl.style.top = food[1] * CELL_SIZE + "px";
+      board.appendChild(foodEl);
+    }
+
+    function update() {
+      const newHead = [
+        (snake[0][0] + direction[0] + BOARD_WIDTH) % BOARD_WIDTH,
+        (snake[0][1] + direction[1] + BOARD_HEIGHT) % BOARD_HEIGHT,
+      ];
+
+      if (snake.some(([x, y]) => x === newHead[0] && y === newHead[1])) {
+        endGame("Game Over! You hit yourself.");
+        return;
+      }
+
+      snake.unshift(newHead);
+      if (newHead[0] === food[0] && newHead[1] === food[1]) {
+        score++;
+        scoreEl.textContent = score;
+        food = getRandomCoord();
+      } else {
+        snake.pop();
+      }
+
+      draw();
+    }
+
+    function updateTimer() {
+      timeLeft--;
+      timerEl.textContent = timeLeft;
+      if (timeLeft <= 0) {
+        endGame("Time's up! Final Score: " + score);
+      }
+    }
+
+    function endGame(msg) {
+      clearInterval(gameInterval);
+      clearInterval(timer);
+      isGameOver = true;
+      message.textContent = msg;
+    }
+
+    function restartGame() {
+      snake = [[10, 15]];
+      direction = [1, 0];
+      food = getRandomCoord();
+      isGameOver = false;
+      score = 0;
+      timeLeft = GAME_DURATION;
+      scoreEl.textContent = score;
+      timerEl.textContent = timeLeft;
+      message.textContent = "";
+      draw();
+      clearInterval(gameInterval);
+      clearInterval(timer);
+      gameInterval = setInterval(update, TICK_RATE);
+      timer = setInterval(updateTimer, 1000);
+    }
+
+    window.addEventListener("keydown", (e) => {
+      const keyMap = {
+        ArrowUp: [0, -1],
+        ArrowDown: [0, 1],
+        ArrowLeft: [-1, 0],
+        ArrowRight: [1, 0],
+      };
+      if (keyMap[e.key]) {
+        direction = keyMap[e.key];
+      }
+    });
+
+    restartGame();
+  </script>
+</body>
+</html>

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maze Game</title>
+  <style>
+    body {
+      background-color: #121212;
+      color: #ffffff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 1rem;
+    }
+    h1 {
+      color: #00d1b2;
+      margin-bottom: 1rem;
+    }
+    .instructions {
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .maze {
+      display: grid;
+      grid-template-columns: repeat(21, 30px);
+      grid-template-rows: repeat(21, 30px);
+      gap: 2px;
+      margin: 1rem auto;
+      width: fit-content;
+    }
+    .cell {
+      width: 30px;
+      height: 30px;
+      box-sizing: border-box;
+    }
+    .wall {
+      background-color: #333333;
+      border: 1px solid #555;
+    }
+    .path {
+      background-color: #1e1e1e;
+      border: 1px solid #00d1b2;
+    }
+    .player {
+      background-image: url('arcesiumlogo.jpg');
+      background-size: cover;
+      background-position: center;
+    }
+    .goal {
+      background-color: #00d1b2;
+    }
+    .controls {
+      margin-top: 1rem;
+    }
+    .timer {
+      font-size: 1.2rem;
+      margin: 0.5rem;
+    }
+    button {
+      background-color: #00d1b2;
+      color: #121212;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #00b89c;
+    }
+    #message {
+      margin-top: 1rem;
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Maze Challenge</h1>
+  <div class="instructions">
+    Use arrow keys (or swipe on mobile) to move the Arcesium logo to the teal square. Reach the goal within 60 seconds!
+  </div>
+  <div class="timer">Time left: <span id="timer">60</span>s</div>
+  <div id="maze" class="maze"></div>
+  <div class="controls">
+    <button onclick="startGame()">Restart</button>
+  </div>
+  <div id="message"></div>
+
+  <script>
+    const mazeElement = document.getElementById('maze');
+    const timerElement = document.getElementById('timer');
+    const messageElement = document.getElementById('message');
+    const size = 21;
+    let maze = [], playerPos = { x: 1, y: 1 }, goal = { x: 19, y: 19 }, timer = 60, interval;
+
+    const hardMazeLayout = [
+        "010001001110000111111",
+		"000100100000110000111",
+		"101010111011101110101",
+		"101000010001000010001",
+		"100011011101101011100",
+		"101010001000001010010",
+		"001010111101101010100",
+		"011111100000111010101",
+		"011010101111101010101",
+		"000010101000001000101",
+		"101010101011011101101",
+		"101000010001000000101",
+		"001110100111101110101",
+		"000010101000000110101",
+		"111010101011011010101",
+		"100011000100101010101",
+		"101100011011100011101",
+		"100001010001001001001",
+		"101011110111111101101",
+		"111011010100011000001",
+		"110000010001000010111"
+    ];
+
+    function generateMaze() {
+      maze = [];
+      mazeElement.innerHTML = '';
+      for (let y = 0; y < size; y++) {
+        let row = [];
+        for (let x = 0; x < size; x++) {
+          const cell = document.createElement('div');
+          const type = hardMazeLayout[y][x] === '1' ? 'wall' : 'path';
+          cell.className = `cell ${type}`;
+          mazeElement.appendChild(cell);
+          row.push({ x, y, type, element: cell });
+        }
+        maze.push(row);
+      }
+      renderPlayer();
+    }
+
+    function renderPlayer() {
+      maze.forEach(row => row.forEach(cell => cell.element.classList.remove('player', 'goal')));
+      maze[playerPos.y][playerPos.x].element.classList.add('player');
+      maze[goal.y][goal.x].element.classList.add('goal');
+    }
+
+    function movePlayer(dx, dy) {
+      const newX = playerPos.x + dx;
+      const newY = playerPos.y + dy;
+      if (
+        newX >= 0 && newX < size &&
+        newY >= 0 && newY < size &&
+        maze[newY][newX].type === 'path'
+      ) {
+        playerPos = { x: newX, y: newY };
+        renderPlayer();
+        checkWin();
+      }
+    }
+
+    function checkWin() {
+      if (playerPos.x === goal.x && playerPos.y === goal.y) {
+        clearInterval(interval);
+        messageElement.textContent = "🎉 Congratulations! You solved the maze!";
+      }
+    }
+
+    function startGame() {
+      playerPos = { x: 1, y: 1 };
+      goal = { x: 19, y: 19 };
+      timer = 60;
+      timerElement.textContent = timer;
+      messageElement.textContent = '';
+      generateMaze();
+      clearInterval(interval);
+      interval = setInterval(() => {
+        timer--;
+        timerElement.textContent = timer;
+        if (timer <= 0) {
+          clearInterval(interval);
+          messageElement.textContent = "⏰ Time's up! Try again.";
+        }
+      }, 1000);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (timer <= 0) return;
+      switch (e.key) {
+        case 'ArrowUp': movePlayer(0, -1); break;
+        case 'ArrowDown': movePlayer(0, 1); break;
+        case 'ArrowLeft': movePlayer(-1, 0); break;
+        case 'ArrowRight': movePlayer(1, 0); break;
+      }
+    });
+
+    let touchStartX = 0, touchStartY = 0;
+    document.addEventListener('touchstart', (e) => {
+      const touch = e.touches[0];
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+    });
+    document.addEventListener('touchend', (e) => {
+      const touch = e.changedTouches[0];
+      const dx = touch.clientX - touchStartX;
+      const dy = touch.clientY - touchStartY;
+      if (Math.abs(dx) > Math.abs(dy)) {
+        dx > 0 ? movePlayer(1, 0) : movePlayer(-1, 0);
+      } else {
+        dy > 0 ? movePlayer(0, 1) : movePlayer(0, -1);
+      }
+    });
+
+    startGame();
+  </script>
+</body>
+</html>
