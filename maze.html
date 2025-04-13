@@ -2,40 +2,39 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <title>Maze Game</title>
   <style>
-    body {
+    html, body {
+      margin: 0;
+      padding: 0;
       background-color: #121212;
       color: #ffffff;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       text-align: center;
-      margin: 0;
-      padding: 1rem;
+      overflow: hidden; /* Prevent scrolling */
+      touch-action: none; /* Disable touch scrolling */
     }
     h1 {
       color: #00d1b2;
-      margin-bottom: 1rem;
+      margin: 1rem 0 0.5rem;
     }
     .instructions {
-      margin-bottom: 1rem;
+      margin: 0 auto 1rem;
       font-size: 0.95rem;
       max-width: 600px;
-      margin-left: auto;
-      margin-right: auto;
     }
     .maze {
-      display: grid;
-      grid-template-columns: repeat(21, 30px);
-      grid-template-rows: repeat(21, 30px);
-      gap: 2px;
-      margin: 1rem auto;
-      width: fit-content;
+	  display: grid;
+	  width: 65vw;
+	  height: 65vh;
+	  gap: 2px;
+	  margin: 1rem auto;
     }
     .cell {
-      width: 30px;
-      height: 30px;
-      box-sizing: border-box;
+	  box-sizing: border-box;
+	  width: 100%;
+	  height: 100%;
     }
     .wall {
       background-color: #333333;
@@ -99,44 +98,48 @@
     let maze = [], playerPos = { x: 1, y: 1 }, goal = { x: 19, y: 19 }, timer = 60, interval;
 
     const hardMazeLayout = [
-        "010001001110000111111",
-		"000100100000110000111",
-		"101010111011101110101",
-		"101000010001000010001",
-		"100011011101101011100",
-		"101010001000001010010",
-		"001010111101101010100",
-		"011111100000111010101",
-		"011010101111101010101",
-		"000010101000001000101",
-		"101010101011011101101",
-		"101000010001000000101",
-		"001110100111101110101",
-		"000010101000000110101",
-		"111010101011011010101",
-		"100011000100101010101",
-		"101100011011100011101",
-		"100001010001001001001",
-		"101011110111111101101",
-		"111011010100011000001",
-		"110000010001000010111"
+      "010001001110000111111",
+      "000100100000110000111",
+      "101010111011101110101",
+      "101000010001000010001",
+      "100011011101101011100",
+      "101010001000001010010",
+      "001010111101101010100",
+      "011111100000111010101",
+      "011010101111101010101",
+      "000010101000001000101",
+      "101010101011011101101",
+      "101000010001000000101",
+      "001110100111101110101",
+      "000010101000000110101",
+      "111010101011011010101",
+      "100011000100101010101",
+      "101100011011100011101",
+      "100001010001001001001",
+      "101011110111111101101",
+      "111011010100011000001",
+      "110000010001000010111"
     ];
 
     function generateMaze() {
-      maze = [];
-      mazeElement.innerHTML = '';
-      for (let y = 0; y < size; y++) {
-        let row = [];
-        for (let x = 0; x < size; x++) {
-          const cell = document.createElement('div');
-          const type = hardMazeLayout[y][x] === '1' ? 'wall' : 'path';
-          cell.className = `cell ${type}`;
-          mazeElement.appendChild(cell);
-          row.push({ x, y, type, element: cell });
-        }
-        maze.push(row);
-      }
-      renderPlayer();
+       maze = [];
+	   mazeElement.innerHTML = '';
+	   // Set the grid to divide evenly based on number of cells
+	   mazeElement.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+	   mazeElement.style.gridTemplateRows = `repeat(${size}, 1fr)`;
+
+       for (let y = 0; y < size; y++) {  
+   	    let row = [];
+		 for (let x = 0; x < size; x++) {
+		   const cell = document.createElement('div');
+		   const type = hardMazeLayout[y][x] === '1' ? 'wall' : 'path';
+		   cell.className = `cell ${type}`;
+		   mazeElement.appendChild(cell);
+	      row.push({ x, y, type, element: cell });
+		 }
+		 maze.push(row);
+	   }
+	   renderPlayer();
     }
 
     function renderPlayer() {
